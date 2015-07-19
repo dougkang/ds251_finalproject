@@ -1,0 +1,22 @@
+data/feat.dat <- data/MillionSongSubset/data
+  find $INPUT -type f -name *.h5 | xargs -I{} python preproc/msongsdb/extract_features.py {} artist_id artist_mbid \
+   artist_terms song_id track_7digitalid track_id year danceability duration energy key loudness \
+   mode sections_start segments_start segments_loudness_max segments_pitches segments_timbre tempo \
+   time_signature > $OUTPUT
+
+data/artist_terms.tab <-
+  python setup_artist_term.py data/MillionSongSubset/AdditionalFiles/subset_artist_term.db $OUTPUT
+
+models/genre_pca <- data/artist_terms.tab
+  [ -d $OUTPUT ] || mkdir $OUTPUT
+  rm -rf $OUTPUT
+  spark-submit --driver-memory 10g --executor-memory 10g --total-executor-cores 4 \
+    --class ds251.GenrePCA \
+    trainer/target/scala-2.10/trainer-assembly-0.0.1.jar $INPUT $OUTPUT
+
+models/song_pca <- data/feat.dat
+  [ -d $OUTPUT ] || mkdir $OUTPUT
+  rm -rf $OUTPUT
+  spark-submit --driver-memory 10g --executor-memory 10g --total-executor-cores 4 \
+    --class ds251.SongPCA \
+    trainer/target/scala-2.10/trainer-assembly-0.0.1.jar $INPUT $OUTPUT

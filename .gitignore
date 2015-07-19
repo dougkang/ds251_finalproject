@@ -1,0 +1,8 @@
+drake.log
+.drake
+**/target
+venv
+data
+models
+*.pyc
+*.swp

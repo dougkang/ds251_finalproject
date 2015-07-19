@@ -3,18 +3,18 @@ package ds251
 import org.apache.spark._
 import org.apache.spark.mllib.feature.{HashingTF, PCA}
 
-case class Config(
+case class GenrePCAConfig(
   input: String = "",
   output: String = "",
   k: Int = 100,
   delim: String = "\t"
 )
 
-object PCATrainer extends App {
+object GenrePCA extends App {
 
   // Create our argparser
-  val parser = new scopt.OptionParser[Config]("pca-trainer") {
-    head("pca-trainer", "0.1")
+  val parser = new scopt.OptionParser[GenrePCAConfig]("genre-pca-trainer") {
+    head("Genre PCA Trainer", "0.1")
     opt[Int]("k") optional() action { (x, c) =>
       c.copy(k = x) } text("value for k (default: 100)")
     opt[String]("delim") optional() action { (x, c) =>
@@ -26,7 +26,7 @@ object PCATrainer extends App {
       c.copy(output = x) } text("path to output")
   }
 
-  parser.parse(args, Config()) match {
+  parser.parse(args, GenrePCAConfig()) match {
     case Some(cfg) =>
       // Create the Spark Context
       val sparkConf = new SparkConf()
