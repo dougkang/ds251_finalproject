@@ -5,7 +5,7 @@ data/feat.dat <- data/MillionSongSubset/data
    time_signature > $OUTPUT
 
 data/artist_terms.tab <-
-  python setup_artist_term.py data/MillionSongSubset/AdditionalFiles/subset_artist_term.db $OUTPUT
+  python preproc/msongsdb/setup_artist_term.py data/MillionSongSubset/AdditionalFiles/subset_artist_term.db $OUTPUT
 
 models/genre_pca <- data/artist_terms.tab
   [ -d $OUTPUT ] || mkdir $OUTPUT
