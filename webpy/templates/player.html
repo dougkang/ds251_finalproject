@@ -1,0 +1,29 @@
+$def with(tracks)
+
+<!DOCTYPE HTML>
+<html>
+    <head> 
+        <title>W251 Project: Music Service using the Million Song Dataset</title>
+        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script type="text/javascript" src="static/player.js"></script>
+        <link type="text/css" rel="stylesheet" href="static/player.css" / >
+    </head>
+    <body>
+        <div id="titlebar">
+            W251 Project: Music Service using the Million Song Dataset
+        </div>
+        <div id="mplayer">
+            <audio controls="controls" autoplay>
+                <source src="" type="audio/mpeg" / >
+            </audio>
+        </div>
+        <div id="trackdetails">
+            <img src="" / >
+            <p id="artistAndTrackname">
+            </p>
+        </div>
+        <p id="hiddenP">
+            $:tracks
+        </p>
+    </body>
+</html>

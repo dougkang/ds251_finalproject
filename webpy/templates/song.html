@@ -1,0 +1,30 @@
+$def with(songUrl, songTitle, artist, artwork)
+
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        <link type="text/css" rel="stylesheet" href="static/song.css" / >
+        <title>W251 Project: Music Service using the Million Song Dataset</title>
+    </head>
+    <body>
+        <div id="titlebar">
+            W251 Project: Music Service using the Million Song Dataset
+        </div>
+        <div id="mplayer">
+            <audio controls="controls" autoplay="autoplay">
+                <source src="$:songUrl" type="audio/mpeg" / >
+            </audio>
+        </div>
+        <div id="trackdetails">
+            <img src="$artwork" / >
+            <p>
+                Artist: $artist
+                <br/>
+                Track:  $songTitle
+            </p>
+        </div>
+    </body>
+</html>
+
+
