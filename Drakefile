@@ -20,3 +20,6 @@ models/song_pca <- data/feat.dat
   spark-submit --driver-memory 10g --executor-memory 10g --total-executor-cores 4 \
     --class ds251.SongPCA \
     trainer/target/scala-2.10/trainer-assembly-0.0.1.jar $INPUT $OUTPUT
+
+models/song_pca.csv <- models/song_pca
+  cat $INPUT/* > $OUTPUT
