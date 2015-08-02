@@ -41,6 +41,7 @@ object SongSim extends App {
         .map { x => (x(3), x.drop(5).map(_.toDouble)) }
 
       println(s"Found ${inRDD.count()} documents")
+      inRDD.cache()
 
       val songRDD = inRDD.cartesian(inRDD)
         .map { case ((kx, vx), (ky, vy)) => 
@@ -52,6 +53,7 @@ object SongSim extends App {
           (kx, (ky, dist))
         }
 
+      songRDD.cache()
       println(s"Found ${songRDD.count()} combinations")
 
       println(s"Finding similar songs")
@@ -63,7 +65,7 @@ object SongSim extends App {
              .toList
              .sortBy { _._2 } 
              .take(10)
-             .map { _._1 }
+             .map { case (id, score) => s"$id|$score"  }
 
           id :: topMatches
         }
