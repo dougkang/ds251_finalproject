@@ -15,7 +15,7 @@ while read -r x; do
       mode sections_start segments_start segments_loudness_max segments_pitches segments_timbre tempo \
       time_signature > $out
   echo "putting /millionSongFeats/$out"
-  /usr/local/hadoop/bin/hdfs dfs -put $out /millionSongFeats/$x
+  /usr/local/hadoop/bin/hdfs dfs -put $out /millionSongFeat/
   echo "cleaning up"
   rm -r $x $fn $out
 done
