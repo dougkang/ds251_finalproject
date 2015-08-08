@@ -6,8 +6,8 @@ while read -r x; do
   fn="$x.tar.gz"
   out="$x.feat"
   echo "downloading $fn"
-  # rsync -avzuP "publicdata.opensciencedatacloud.org::ark:/31807/osdc-c1c763e4/$fn" "$fn"
-  # tar xzvf $fn
+  rsync -avzuP "publicdata.opensciencedatacloud.org::ark:/31807/osdc-c1c763e4/$fn" "$fn"
+  tar xzvf $fn
   echo "extracting features from $x"
   find . -type f -name *.h5 | \
     xargs -I{} python /root/ds251_finalproject/preproc/msongsdb/extract_features.py {} artist_id artist_mbid \
