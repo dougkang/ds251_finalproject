@@ -1,4 +1,4 @@
-$def with(tracks)
+$def with(artist_and_track, id_7digital, serverName)
 
 <!DOCTYPE HTML>
 <html>
@@ -13,17 +13,27 @@ $def with(tracks)
             W251 Project: Music Service using the Million Song Dataset
         </div>
         <div id="mplayer">
+            <div id="messageDisplay"></div>
             <audio controls="controls" autoplay>
                 <source src="" type="audio/mpeg" / >
             </audio>
         </div>
         <div id="trackdetails">
-            <img src="" / >
+            <img src="" height="200" width="200"/ >
             <p id="artistAndTrackname">
             </p>
         </div>
-        <p id="hiddenP">
-            $:tracks
+        <div id="displaySimilarSongs">
+            Similar Songs:
+        </div>
+        <p id="hidden_artist_and_track" class="hiddenP">
+            $artist_and_track
+        </p>
+        <p id="hidden_id_7digital" class="hiddenP">
+            $id_7digital
+        </p>
+        <p id="hiddenServerName" class="hiddenP">
+            $serverName
         </p>
     </body>
 </html>

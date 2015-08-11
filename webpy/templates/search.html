@@ -1,0 +1,35 @@
+$def with(artist_and_track, id_7digital, searchTerms, serverName)
+
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>W251 Project: Music Service using the Million Song Dataset</title>
+        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script type="text/javascript" src="static/search.js"></script>
+        <link type="text/css" rel="stylesheet" href="static/search.css" / >
+    </head>
+    <body>
+        <div id="titlebar">
+            W251 Project: Music Service using the Million Song Dataset<br>
+            Search the Million Song Dataset
+        </div>
+        <div id="userInput">
+            <form>
+                <input type="text" name="searchText" size="50" id="searchTerms">
+                <input type="submit" value="Search">
+            </form>
+        </div>
+        <div id="searchResults">
+            Search Term: $searchTerms
+        </div>
+        <p id="hiddenSongNameList" class="hiddenP">
+            $artist_and_track
+        </p>
+        <p id="hiddenSongIdList" class="hiddenP">
+            $id_7digital
+        </p>
+        <p id="hiddenServerName" class="hiddenP">
+            $serverName
+        </p>
+    </body>
+</html>
