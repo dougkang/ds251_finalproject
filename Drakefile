@@ -23,3 +23,23 @@ models/song_pca <- data/feat.dat
 
 models/song_pca.csv <- models/song_pca
   cat $INPUT/* > $OUTPUT
+
+models/song_sim <- models/song_pca.csv
+  [ -d $OUTPUT ] || mkdir $OUTPUT
+  rm -rf $OUTPUT
+  spark-submit --driver-memory 10g --executor-memory 10g --total-executor-cores 4 \
+    --class ds251.SongSim \
+    trainer/target/scala-2.10/trainer-assembly-0.0.1.jar $INPUT $OUTPUT
+
+models/song_sim.csv <- models/song_sim
+  cat $INPUT/* > $OUTPUT
+
+models/song_kmeans <- models/song_pca.csv
+  [ -d $OUTPUT ] || mkdir $OUTPUT
+  rm -rf $OUTPUT
+  spark-submit --driver-memory 10g --executor-memory 10g --total-executor-cores 4 \
+    --class ds251.SongKMeans \
+    trainer/target/scala-2.10/trainer-assembly-0.0.1.jar $INPUT $OUTPUT
+
+models/song_kmeans.csv <- models/song_kmeans
+  cat $INPUT/* > $OUTPUT
