@@ -4,6 +4,7 @@ import scala.util.Try
 import scala.collection.mutable.ArrayBuffer
 
 import org.apache.spark._
+import org.apache.spark.storage._
 import org.apache.spark.sql._
 import org.apache.spark.mllib.feature.PCA
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
@@ -29,6 +30,7 @@ object SongSim extends App {
     case Some(cfg) =>
       // Create the Spark Context
       val sparkConf = new SparkConf()
+        .set("spark.driver.maxResultSize", "10g")
       val sc = new SparkContext(sparkConf)
       val sqlc = SQLContext.getOrCreate(sc)
 
@@ -40,42 +42,25 @@ object SongSim extends App {
         // We only need the 7Digital id, so just use that as a key
         .map { x => (x(3), x.drop(5).map(_.toDouble)) }
 
-      println(s"Found ${inRDD.count()} documents")
-      inRDD.cache()
+      inRDD.persist(StorageLevel.MEMORY_AND_DISK_SER)
 
-      val songRDD = inRDD.cartesian(inRDD)
-        .map { case ((kx, vx), (ky, vy)) => 
-          val dist = math.sqrt(
-            vx.zip(vy)
-              .map { case (x, y) => math.pow(x * y, 2.0) }
-              .sum
-          )
-          (kx, (ky, dist))
-        }
-
-      songRDD.cache()
-      println(s"Found ${songRDD.count()} combinations")
-
-      println(s"Finding similar songs")
-
-      val matchesRDD = songRDD
-        .groupByKey
-        .map { case (id, matches) =>
-           val topMatches = matches
-             .toList
-             .sortBy { _._2 } 
-             .take(10)
-             .map { case (id, score) => s"$id|$score"  }
-
-          id :: topMatches
-        }
-
-      matchesRDD
-        .map { x => x.mkString(",") }
+      inRDD.cartesian(inRDD)
+        .map { case ((kx, vx), (ky, vy)) => (kx, (vx, ky, vy)) }
+        .aggregateByKey(Array.empty[(String, Double)])(
+          { case (acc, (vx, ky, vy)) =>
+            val dist = math.sqrt(
+              vx.zip(vy)
+                .map { case (x, y) => math.pow(x - y, 2.0) }
+                .sum)
+            Array((ky, dist))
+          },      
+          { case (x, y) => (x ++ y).sortBy(_._2).take(100) }
+         )      
+        .map { case (k, vs) => s"""$k,${vs.map(_._1).mkString(",")}""" }
         .saveAsTextFile(cfg.output)
-       
+            
     case None =>
       System.exit(1)
-  }
-  
+  }     
+      
 }
