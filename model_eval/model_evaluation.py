@@ -1,50 +1,44 @@
-
-# coding: utf-8
-
-# In[33]:
-
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search, Q
+import re
 import os
 import sys
-import sqlite3
 
-simdbfile = 'lastfm_similars.db'
-simconn = sqlite3.connect(simdbfile)
-
-trackdbfile = 'track_metadata.db'
-trackconn = sqlite3.connect(trackdbfile)
-
-sim_file = 'ds251_finalproject/models/song_sim.csv'
-
-
-# In[98]:
-
-def getTrackID(seven_digital_id):
-    sql = "SELECT track_id FROM songs WHERE track_7digitalid = '{}'".format(seven_digital_id)
-    res = trackconn.execute(sql)
-    data = res.fetchone()
-    if data:
-        return data[0]
-#print res.fetchone()
+client = Elasticsearch(['http://169.55.57.38:9200'])
 
 def get7DigitalID(tid):
-    sql = "SELECT track_7digitalid FROM songs WHERE track_id = '{}'".format(tid)
-    res = trackconn.execute(sql)
-    data = res.fetchone()
-    if data:
-        return data[0]  
+    s = Search(using=client, index="songs") \
+        .query("match", track_id=tid)
+    response = s.execute()
+    return response[0].seven_digital_id
 
+def getTrackID(seven_digital_id):
+    s = Search(using=client, index="songs") \
+        .query("match", seven_digital_id=seven_digital_id)
+    response = s.execute()
+    return response[0].track_id
 
+def getSimilars(tid):
+    s = Search(using=client, index="similars_src") \
+        .query("match", track_id=tid)
+    response = s.execute()
+    if response:
+        return response[0].similars
+# In[33]:
+
+sim_file = '/root/ds251_finalproject/models/tqi_song_sim.csv'
+
+#print get7DigitalID('TREDTHC128F92D42F0')
+#print getTrackID(4759153)
+#print getSimilars('TREDTHC128F92D42F0')
 # In[91]:
 
 def getSimilarSongs(tid, returnCount):
     #tid = 'TREDTHC128F92D42F0'
-    sql = "SELECT target FROM similars_src WHERE tid='%s'" % tid
-    res = simconn.execute(sql)
-    data = res.fetchone()
+    data = getSimilars(tid)
     if data:
-        data = data[0]
         #print '(total number of similar tracks: %d)' % (len(data.split(','))/2)
-
+        data = str(data).replace('\\n','').replace(' ','').replace("u'","").replace("'","").replace('[','').replace(']','')
         data_unpacked = []
         for idx, d in enumerate(data.split(',')):
             if idx % 2 == 0:
@@ -72,7 +66,7 @@ def getSimilarSongs(tid, returnCount):
 
 def getSimilarityPerc(pred_arr, real_arr):
     min_length = min(len(pred_arr), len(real_arr))
-    print min_length
+    #print min_length
     pred_sub_arr = pred_arr[:min_length]
     real_sub_arr = real_arr[:min_length]
     
@@ -114,22 +108,22 @@ for line in fopen:
     
     exp_return_count = len(lineArr) - 1
     track_id = getTrackID(seven_digital_id)
-    print "lineCount: {}, 7digitalID: {}, TrackID: {}".format(lineCount, seven_digital_id, track_id)
+    #print "lineCount: {}, 7digitalID: {}, TrackID: {}".format(lineCount, seven_digital_id, track_id)
     if track_id:
         similar_songs_n_score = getSimilarSongs(track_id, exp_return_count)
         
         if similar_songs_n_score:
             real_similar_song_list = map(lambda x:get7DigitalID(x[0]), similar_songs_n_score)
 
-            print sorted(set(pred_song_list))
-            print sorted(set(real_similar_song_list))
+            #print sorted(set(pred_song_list))
+            #print sorted(set(real_similar_song_list))
             #print getSimilarityPerc(pred_song_list, real_similar_song_list)
             same_count, rp_count, r_count, p_count = procSong(pred_song_list, real_similar_song_list)
             match += same_count
             match_over_rp += rp_count
             match_over_real += r_count
             match_over_pred += p_count
-        print '----------------------------------------'
+        #print '----------------------------------------'
         
 
 fopen.close()
@@ -137,10 +131,4 @@ print float(match)/float(match_over_rp)
 print float(match)/float(match_over_real)
 print float(match)/float(match_over_pred)
 
-
-# In[ ]:
-
-# close connection
-simconn.close()
-trackconn.close()
 
