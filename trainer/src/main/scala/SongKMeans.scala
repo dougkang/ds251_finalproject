@@ -53,9 +53,7 @@ object SongKMeans extends App {
       val km = KMeans.train(inRDD.map(_._2), cfg.k, cfg.iter)
 
       inRDD
-        .map { case (k, vs) => (km.predict(vs), k) }
-        .groupByKey()
-        .map { case (_, vs) => vs.mkString(",") }
+        .map { case (k, vs) => s"""$k,${km.predict(vs)},${vs.toArray.mkString(",")}""" }
         .saveAsTextFile(cfg.output)
             
     case None =>

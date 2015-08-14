@@ -38,25 +38,30 @@ object SongSim extends App {
 
       val inRDD = sc.textFile(cfg.input)
         .map { x => x.split(",") }
-        .filter { _.length > 5 }
         // We only need the 7Digital id, so just use that as a key
-        .map { x => (x(3), x.drop(5).map(_.toDouble)) }
+        .map { x => (x(1).toInt, (x(0).toInt, x.drop(2).map(_.toDouble))) }
 
       inRDD.persist(StorageLevel.MEMORY_AND_DISK_SER)
 
-      inRDD.cartesian(inRDD)
-        .map { case ((kx, vx), (ky, vy)) => (kx, (vx, ky, vy)) }
-        .aggregateByKey(Array.empty[(String, Double)])(
-          { case (acc, (vx, ky, vy)) =>
-            val dist = math.sqrt(
-              vx.zip(vy)
-                .map { case (x, y) => math.pow(x - y, 2.0) }
-                .sum)
-            Array((ky, dist))
-          },      
-          { case (x, y) => (x ++ y).sortBy(_._2).take(100) }
-         )      
-        .map { case (k, vs) => s"""$k,${vs.map(_._1).mkString(",")}""" }
+      inRDD.groupByKey()
+        .map { case (group, vs) => 
+          val ls = vs.toList
+          if (ls.length <= 10) (-1, ls)
+          else (group, ls)
+        }
+        .reduceByKey { case (acc, vs) => acc ++ vs }
+        .flatMap { case (group, vs) =>
+          vs.map { case (kx, vx) =>
+            val top = vs.map { case (ky, vy) =>
+              val dist = math.sqrt(
+                vx.zip(vy)
+                  .map { case (x, y) => math.pow(x-y, 2.0) }
+                  .sum)
+              (ky, dist)
+            }.sortBy(_._2).take(100)
+            s"""$kx,${top.map(_._1).mkString(",")}"""
+          }
+        }
         .saveAsTextFile(cfg.output)
             
     case None =>
