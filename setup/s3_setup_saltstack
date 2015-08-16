@@ -23,6 +23,7 @@ do
     ssh root@${h} "yes Y| sudo apt-get install salt-master"
     ssh root@${h} "yes Y| sudo apt-get install salt-minion"
     ssh root@${h} "yes Y| sudo apt-get install salt-syndic"
+    ssh root@${h} "yes Y| sudo apt-get install git"
     ssh root@${h} "yes Y| sudo apt-get install salt-ssh"
     ssh root@${h} "echo 'master:${MASTER}' >> /etc/salt/minion"
 done
@@ -31,3 +32,5 @@ echo "Go to the master host and execute the following commands"
 echo "salt-key -L"
 echo "salt-key -A"
 echo "run salt '*' test.ping to make sure things are fine, if needed run salt-minion restart -d on each minion node"
+
+echo "Starting step 4, please run them on master node"
