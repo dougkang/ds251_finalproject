@@ -1,11 +1,28 @@
+#!/usr/bin/python
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 import re
 import os
 import sys
 
+def die_with_usage():
+    print 'USAGE:'
+    print '  ./model_evaluation.py <song_sim.csv>'
+    sys.exit(0)
+
+if len(sys.argv) != 2:
+    die_with_usage()
+
+# sanity check song_sim.csv file
+sim_file = sys.argv[1]
+if not os.path.isfile(sim_file):
+    print 'ERROR: song_sim.csv file %s does not exist?' % sim_file
+    die_with_usage()
+
+# connect to elastic search
 client = Elasticsearch(['http://169.55.57.38:9200'])
 
+# functions to query elastic search
 def get7DigitalID(tid):
     s = Search(using=client, index="songs") \
         .query("match", track_id=tid)
@@ -24,20 +41,11 @@ def getSimilars(tid):
     response = s.execute()
     if response:
         return response[0].similars
-# In[33]:
 
-sim_file = '/root/ds251_finalproject/models/tqi_song_sim.csv'
-
-#print get7DigitalID('TREDTHC128F92D42F0')
-#print getTrackID(4759153)
-#print getSimilars('TREDTHC128F92D42F0')
-# In[91]:
-
+# function to format and sort returned similar songs
 def getSimilarSongs(tid, returnCount):
-    #tid = 'TREDTHC128F92D42F0'
     data = getSimilars(tid)
     if data:
-        #print '(total number of similar tracks: %d)' % (len(data.split(','))/2)
         data = str(data).replace('\\n','').replace(' ','').replace("u'","").replace("'","").replace('[','').replace(']','')
         data_unpacked = []
         for idx, d in enumerate(data.split(',')):
@@ -47,7 +55,7 @@ def getSimilarSongs(tid, returnCount):
                 pair.append(float(d))
                 data_unpacked.append(pair)
 
-        # sort
+        # sort similar songs by similarity scores
         data_unpacked = sorted(data_unpacked, key=lambda x: x[1], reverse=True)
 
         returnList = []
@@ -56,48 +64,37 @@ def getSimilarSongs(tid, returnCount):
                 returnList.append(tuple(data_unpacked[k]))
         return returnList
 
-
-# In[ ]:
-
-
-
-
-# In[82]:
-
+# funtion to calculate similarity percentage
 def getSimilarityPerc(pred_arr, real_arr):
     min_length = min(len(pred_arr), len(real_arr))
-    #print min_length
+
     pred_sub_arr = pred_arr[:min_length]
     real_sub_arr = real_arr[:min_length]
-    
-    
+
     diff_count = float(len(set(real_sub_arr) - set(pred_sub_arr)))
     min_length = float(min_length)
     same_count = min_length - diff_count
-    
+
     return same_count/min_length
 
-
-# In[103]:
-
+# function to compare two similar song lists
 def procSong(pred_arr, real_arr):
     min_length = min(len(pred_arr), len(real_arr))
     pred_sub_arr = pred_arr[:min_length]
     real_sub_arr = real_arr[:min_length]
-    
+
     same_count = len(list(set(real_sub_arr) & set(pred_sub_arr)))
     return same_count, min_length, len(pred_arr), len(real_arr)
 
 
-# In[105]:
-
-match = 0
-match_over_rp = 0
-match_over_real = 0
-match_over_pred = 0
+match = 0 # total number of matched similar songs
+match_over_rp = 0 # total overlap lenth of real and predicted similar songs
+match_over_real = 0 # total number of real similar songs
+match_over_pred = 0 # total number of predicted similar songs
 
 fopen = open(sim_file,'r')
 lineCount = 0
+
 for line in fopen:
     lineCount += 1
     line = line.strip('\n')
@@ -105,30 +102,28 @@ for line in fopen:
     lineArr = map(lambda x:int(x),lineArr)
     seven_digital_id = lineArr[0]
     pred_song_list = lineArr[1:]
-    
+
     exp_return_count = len(lineArr) - 1
     track_id = getTrackID(seven_digital_id)
     #print "lineCount: {}, 7digitalID: {}, TrackID: {}".format(lineCount, seven_digital_id, track_id)
     if track_id:
         similar_songs_n_score = getSimilarSongs(track_id, exp_return_count)
-        
+
         if similar_songs_n_score:
             real_similar_song_list = map(lambda x:get7DigitalID(x[0]), similar_songs_n_score)
 
-            #print sorted(set(pred_song_list))
-            #print sorted(set(real_similar_song_list))
             #print getSimilarityPerc(pred_song_list, real_similar_song_list)
             same_count, rp_count, r_count, p_count = procSong(pred_song_list, real_similar_song_list)
             match += same_count
             match_over_rp += rp_count
             match_over_real += r_count
             match_over_pred += p_count
-        #print '----------------------------------------'
-        
 
 fopen.close()
-print float(match)/float(match_over_rp)
-print float(match)/float(match_over_real)
-print float(match)/float(match_over_pred)
+
+print 'Total number of matched similar songs:', match
+print '(# total match) / (total overlap lenth of real and predicted similar songs):', float(match)/float(match_over_rp)
+print '(# total match) / (total # real similar songs):', float(match)/float(match_over_real)
+print '(# total match) / (total # predicted similar songs):', float(match)/float(match_over_pred)
 
 

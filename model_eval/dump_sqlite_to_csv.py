@@ -1,13 +1,33 @@
+#!/usr/bin/python
+import os
 import sqlite3
 import sys
 
-simdbfile = '/home/hadoop/lastfm_similars.db'
-simconn = sqlite3.connect(simdbfile)
+def die_with_usage():
+    print 'USAGE:'
+    print '  ./dump_sqlite_to_csv.py <lastfm_similars.db> <track_metadata.db>'
+    sys.exit(0)
 
-trackdbfile = '/home/hadoop/track_metadata.db'
+if len(sys.argv) != 3:
+    die_with_usage()
+
+# sanity check db files
+simdbfile = sys.argv[1]
+trackdbfile = sys.argv[2]
+
+if not os.path.isfile(simdbfile):
+    print 'ERROR: db file %s does not exist?' % simdbfile
+    die_with_usage()
+if not os.path.isfile(trackdbfile):
+    print 'ERROR: db file %s does not exist?' % trackdbfile
+    die_with_usage()
+
+# open connections
+simconn = sqlite3.connect(simdbfile)
 trackconn = sqlite3.connect(trackdbfile)
 
-print "dump all data from track_metadata.db"
+# dump track_id ~ track_7digitalid pairs to a file
+print "dump track_id ~ track_7digitalid pairs from track_metadata.db"
 sql = "SELECT track_id, track_7digitalid FROM songs"
 res = trackconn.execute(sql)
 data = res.fetchall()
@@ -16,8 +36,7 @@ for d in data:
     fopen.write("{},{}\n".format(d[0], d[1]))
 fopen.close()
 
-
-
+# dump similar songs information to a file
 print "dump all data from lastfm_similars.db"
 songopen = open("songs.csv","r")
 fopen = open("similars_src.csv","w")
@@ -30,6 +49,6 @@ for s in songopen:
         fopen.write("{},{}\n".format(d[0], d[1]))
 fopen.close()
 
-
+# close connections
 simconn.close()
 trackconn.close()
