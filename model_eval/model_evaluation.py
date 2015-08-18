@@ -7,7 +7,7 @@ import sys
 
 def die_with_usage():
     print 'USAGE:'
-    print '  ./model_evaluation.py <song_sim.csv>'
+    print '  ./model_evaluation.py <songSim.csv>'
     sys.exit(0)
 
 if len(sys.argv) != 2:
@@ -16,7 +16,7 @@ if len(sys.argv) != 2:
 # sanity check song_sim.csv file
 sim_file = sys.argv[1]
 if not os.path.isfile(sim_file):
-    print 'ERROR: song_sim.csv file %s does not exist?' % sim_file
+    print 'ERROR: file %s does not exist?' % sim_file
     die_with_usage()
 
 # connect to elastic search
@@ -64,19 +64,6 @@ def getSimilarSongs(tid, returnCount):
                 returnList.append(tuple(data_unpacked[k]))
         return returnList
 
-# funtion to calculate similarity percentage
-def getSimilarityPerc(pred_arr, real_arr):
-    min_length = min(len(pred_arr), len(real_arr))
-
-    pred_sub_arr = pred_arr[:min_length]
-    real_sub_arr = real_arr[:min_length]
-
-    diff_count = float(len(set(real_sub_arr) - set(pred_sub_arr)))
-    min_length = float(min_length)
-    same_count = min_length - diff_count
-
-    return same_count/min_length
-
 # function to compare two similar song lists
 def procSong(pred_arr, real_arr):
     min_length = min(len(pred_arr), len(real_arr))
@@ -112,7 +99,6 @@ for line in fopen:
         if similar_songs_n_score:
             real_similar_song_list = map(lambda x:get7DigitalID(x[0]), similar_songs_n_score)
 
-            #print getSimilarityPerc(pred_song_list, real_similar_song_list)
             same_count, rp_count, r_count, p_count = procSong(pred_song_list, real_similar_song_list)
             match += same_count
             match_over_rp += rp_count
@@ -122,8 +108,7 @@ for line in fopen:
 fopen.close()
 
 print 'Total number of matched similar songs:', match
+print 'Precision:', float(match)/float(match_over_pred)
+print 'Recall:', float(match)/float(match_over_real)
 print '(# total match) / (total overlap lenth of real and predicted similar songs):', float(match)/float(match_over_rp)
-print '(# total match) / (total # real similar songs):', float(match)/float(match_over_real)
-print '(# total match) / (total # predicted similar songs):', float(match)/float(match_over_pred)
-
 
