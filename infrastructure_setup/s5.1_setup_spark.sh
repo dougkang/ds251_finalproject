@@ -14,6 +14,10 @@ master
 slave1
 slave2
 slave3
-slave4"
+slave4
+slave5
+slave6
+slave7
+slave8"
 
 echo 'Please ssh to the master node and startup the spark cluster by running $SPARK_HOME/sbin/start-all.sh'
