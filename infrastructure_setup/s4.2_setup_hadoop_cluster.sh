@@ -1,6 +1,6 @@
 #!/bin/bash
 
-salt-ssh '*' "su - hadoop; echo master >> /usr/local/hadoop/etc/hadoop/masters; echo -e 'master\nslave1\nslave2\nslave3\nslave4 >> /usr/local/hadoop/etc/hadoop/slaves'"
+salt-ssh '*' "su - hadoop; echo master >> /usr/local/hadoop/etc/hadoop/masters; echo -e 'master\nslave1\nslave2\nslave3\nslave4\nslave5\nslave6\nslave7\nslave8 >> /usr/local/hadoop/etc/hadoop/slaves'"
 salt-ssh '*' "su - hadoop; echo 'export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/jre' >> /usr/local/hadoop/etc/hadoop/hadoop-env.sh"
 salt-ssh '*' "su - hadoop; echo 'export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/jre' >> /usr/local/hadoop/etc/hadoop/yarn-env.sh"
 salt-ssh '*' "su - hadoop; cat << _EOF >> /usr/local/hadoop/etc/hadoop/core-site.xml
